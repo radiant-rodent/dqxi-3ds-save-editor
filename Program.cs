@@ -34,7 +34,7 @@ namespace SaveEditor
             var app = new Application { ShutdownMode = ShutdownMode.OnMainWindowClose };
             app.Resources.MergedDictionaries.Add(new ResourceDictionary
             {
-                Source = new Uri("pack://application:,,,/SaveEditor;component/Theme.xaml"),
+                Source = new Uri("pack://application:,,,/SaveEditor;component/Themes/Theme.xaml"),
             });
             if (args.Length >= 3 && args[0] == "--snapshot")
             {

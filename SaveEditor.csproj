@@ -9,15 +9,20 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <StartupObject>SaveEditor.Program</StartupObject>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+    <Resource Include="Assets\favicon.png" />
+    <Resource Include="Assets\icons.png" />
+    <EmbeddedResource Include="Assets\icons.png" />
+  </ItemGroup>
 
   <!-- Game tables made by `python -m dq11tool.savedata workspace <this folder>/gamedata.json`
        (built from the extracted game, so not in git). Without it the editor shows ids. -->
   <ItemGroup Condition="Exists('gamedata.json')">
     <None Include="gamedata.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-  <ItemGroup Condition="Exists('icons.png')">
-    <None Include="icons.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

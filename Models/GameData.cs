@@ -97,7 +97,11 @@ namespace SaveEditor
         {
             var g = new GameData();
             string path = Find();
-            if (path == null) return g;
+            if (path == null)
+            {
+                g.LoadIcons(null, 64, 32);
+                return g;
+            }
             g.SourcePath = path;
             using var doc = JsonDocument.Parse(File.ReadAllBytes(path));
             var root = doc.RootElement;
@@ -149,18 +153,67 @@ namespace SaveEditor
 
         void LoadIcons(string path, int size, int perRow)
         {
-            if (!File.Exists(path)) return;
+            iconSize = size;
+            iconsPerRow = perRow;
+
+            // 1. If an external icons.png is found, use it
+            if (!string.IsNullOrEmpty(path) && File.Exists(path))
+            {
+                try
+                {
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.UriSource = new Uri(Path.GetFullPath(path));
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    iconSheet = bmp;
+                    return;
+                }
+                catch (Exception) { }
+            }
+
+            // 2. Embedded resource stream
             try
             {
-                var bmp = new BitmapImage();
-                bmp.BeginInit();
-                bmp.CacheOption = BitmapCacheOption.OnLoad;
-                bmp.UriSource = new Uri(path);
-                bmp.EndInit();
-                bmp.Freeze();
-                iconSheet = bmp;
-                iconSize = size;
-                iconsPerRow = perRow;
+                var asm = typeof(GameData).Assembly;
+                var resName = asm.GetManifestResourceNames()
+                    .FirstOrDefault(n => n.EndsWith("icons.png", StringComparison.OrdinalIgnoreCase));
+                if (resName != null)
+                {
+                    using var s = asm.GetManifestResourceStream(resName);
+                    if (s != null)
+                    {
+                        var bmp = new BitmapImage();
+                        bmp.BeginInit();
+                        bmp.CacheOption = BitmapCacheOption.OnLoad;
+                        bmp.StreamSource = s;
+                        bmp.EndInit();
+                        bmp.Freeze();
+                        iconSheet = bmp;
+                        return;
+                    }
+                }
+            }
+            catch (Exception) { }
+
+            // 3. WPF pack URI fallback
+            try
+            {
+                var uri = new Uri("pack://application:,,,/Assets/icons.png", UriKind.Absolute);
+                var info = Application.GetResourceStream(uri);
+                if (info != null)
+                {
+                    using var s = info.Stream;
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.StreamSource = s;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    iconSheet = bmp;
+                    return;
+                }
             }
             catch (Exception) { iconSheet = null; }
         }
