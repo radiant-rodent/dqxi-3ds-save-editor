@@ -17,10 +17,11 @@
     <Resource Include="Assets\favicon.png" />
     <Resource Include="Assets\icons.png" />
     <EmbeddedResource Include="Assets\icons.png" />
+    <Resource Include="Assets\gamedata.json" />
+    <EmbeddedResource Include="Assets\gamedata.json" />
   </ItemGroup>
 
-  <!-- Game tables made by `python -m dq11tool.savedata workspace <this folder>/gamedata.json`
-       (built from the extracted game, so not in git). Without it the editor shows ids. -->
+  <!-- Optional external gamedata.json override for development/distribution -->
   <ItemGroup Condition="Exists('gamedata.json')">
     <None Include="gamedata.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

@@ -26,9 +26,8 @@ Saving rewrites the slot's checksum and keeps a copy of the file it replaces in
 ## Download
 
 Grab `SaveEditor.exe` from the [releases](https://github.com/radiant-rodent/dqxi-3ds-save-editor/releases):
-one portable file, no install, no .NET needed (Windows 10/11, 64-bit). Item icons are embedded
-directly in the editor. Put `gamedata.json` (see below) in the same folder to get item, monster,
-quest and chapter names.
+one portable file, no install, no .NET needed (Windows 10/11, 64-bit). Game data (names, tables)
+and item icons are embedded directly in the editor, so no extra files are needed.
 
 ## Building
 
@@ -45,18 +44,11 @@ Portable single-file exe (what the releases contain):
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o publish
 ```
 
-## Game data (names)
+## Game data
 
-Item, monster, quest and chapter names, level tables, and flag names come from the game itself,
-so they are not in this repository (item icons are bundled in the editor). Without game data
-the editor still works and shows numbers. To generate `gamedata.json` you need your own extracted copy
-of the game and the [DQXI 3DS translation tool](https://github.com/radiant-rodent/dq-xi-3ds-translation-tool):
-
-```
-python -m dq11tool.savedata workspace <this folder>/gamedata.json
-```
-
-This writes `gamedata.json` next to the exe or in the project folder (`gamedata.json` is gitignored).
+All game tables (`Assets/gamedata.json`) and item icons (`Assets/icons.png`) are included and
+embedded directly into the executable. If desired, you can place a custom `gamedata.json` next to the
+executable to override the built-in tables.
 
 ## Command line
 

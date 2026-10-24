@@ -97,52 +97,108 @@ namespace SaveEditor
         {
             var g = new GameData();
             string path = Find();
-            if (path == null)
+            JsonDocument doc = null;
+
+            if (path != null)
+            {
+                try
+                {
+                    doc = JsonDocument.Parse(File.ReadAllBytes(path));
+                    g.SourcePath = path;
+                }
+                catch (Exception) { doc = null; }
+            }
+
+            if (doc == null)
+            {
+                try
+                {
+                    var asm = typeof(GameData).Assembly;
+                    var resName = asm.GetManifestResourceNames()
+                        .FirstOrDefault(n => n.EndsWith("gamedata.json", StringComparison.OrdinalIgnoreCase));
+                    if (resName != null)
+                    {
+                        using var s = asm.GetManifestResourceStream(resName);
+                        if (s != null)
+                        {
+                            using var ms = new MemoryStream();
+                            s.CopyTo(ms);
+                            doc = JsonDocument.Parse(ms.ToArray());
+                            g.SourcePath = "(embedded)";
+                        }
+                    }
+                }
+                catch (Exception) { doc = null; }
+            }
+
+            if (doc == null)
+            {
+                try
+                {
+                    var uri = new Uri("pack://application:,,,/Assets/gamedata.json", UriKind.Absolute);
+                    var info = Application.GetResourceStream(uri);
+                    if (info != null)
+                    {
+                        using var s = info.Stream;
+                        using var ms = new MemoryStream();
+                        s.CopyTo(ms);
+                        doc = JsonDocument.Parse(ms.ToArray());
+                        g.SourcePath = "(embedded)";
+                    }
+                }
+                catch (Exception) { doc = null; }
+            }
+
+            if (doc == null)
             {
                 g.LoadIcons(null, 64, 32);
                 return g;
             }
-            g.SourcePath = path;
-            using var doc = JsonDocument.Parse(File.ReadAllBytes(path));
-            var root = doc.RootElement;
-            foreach (var e in root.GetProperty("items").EnumerateArray())
+
+            using (doc)
             {
-                g.Items.Add(new ItemInfo
+                var root = doc.RootElement;
+                foreach (var e in root.GetProperty("items").EnumerateArray())
                 {
-                    Game = g,
-                    Id = e.GetProperty("id").GetInt32(),
-                    BaseName = e.GetProperty("name").GetString(),
-                    Plus = e.TryGetProperty("plus", out var pl) ? pl.GetInt32() : 0,
-                    IconIndex = e.TryGetProperty("icon", out var ic) && ic.ValueKind == JsonValueKind.Number ? ic.GetInt32() : -1,
-                    Type = e.GetProperty("type").GetInt32(),
-                    Slot = e.GetProperty("slot").GetInt32(),
-                    Attack = e.GetProperty("attack").GetInt32(),
-                    Defence = e.GetProperty("defence").GetInt32(),
-                    Buy = e.GetProperty("buy").GetInt32(),
-                    Sell = e.GetProperty("sell").GetInt32(),
-                });
-            }
-            foreach (var p in root.GetProperty("levels").EnumerateObject())
-                g.levels[p.Name] = p.Value.EnumerateArray()
-                    .Select(r => r.EnumerateArray().Select(v => v.GetInt32()).ToArray()).ToArray();
-            g.recordParams = root.GetProperty("recordParams").EnumerateArray().Select(v => v.GetString()).ToArray();
-            if (root.TryGetProperty("panels", out var panels))
-                foreach (var e in panels.EnumerateArray())
-                    g.Panels.Add(new PanelInfo
+                    g.Items.Add(new ItemInfo
                     {
+                        Game = g,
                         Id = e.GetProperty("id").GetInt32(),
-                        Kind = e.GetProperty("kind").GetInt32(),
-                        Name = e.GetProperty("name").GetString(),
-                        Cost = e.GetProperty("cost").GetInt32(),
+                        BaseName = e.GetProperty("name").GetString(),
+                        Plus = e.TryGetProperty("plus", out var pl) ? pl.GetInt32() : 0,
+                        IconIndex = e.TryGetProperty("icon", out var ic) && ic.ValueKind == JsonValueKind.Number ? ic.GetInt32() : -1,
+                        Type = e.GetProperty("type").GetInt32(),
+                        Slot = e.GetProperty("slot").GetInt32(),
+                        Attack = e.GetProperty("attack").GetInt32(),
+                        Defence = e.GetProperty("defence").GetInt32(),
+                        Buy = e.GetProperty("buy").GetInt32(),
+                        Sell = e.GetProperty("sell").GetInt32(),
                     });
-            g.LoadExtra(root);
-            // forge levels: +N follows its base item directly
-            foreach (var it in g.Items)
-                if (it.Plus > 0 && it.Id - it.Plus >= 0) g.Items[it.Id - it.Plus].MaxPlus = Math.Max(g.Items[it.Id - it.Plus].MaxPlus, it.Plus);
-            g.LoadIcons(Path.Combine(Path.GetDirectoryName(path), "icons.png"),
-                root.TryGetProperty("iconSize", out var sz) ? sz.GetInt32() : 64,
-                root.TryGetProperty("iconsPerRow", out var pr) ? pr.GetInt32() : 32);
-            return g;
+                }
+                foreach (var p in root.GetProperty("levels").EnumerateObject())
+                    g.levels[p.Name] = p.Value.EnumerateArray()
+                        .Select(r => r.EnumerateArray().Select(v => v.GetInt32()).ToArray()).ToArray();
+                g.recordParams = root.GetProperty("recordParams").EnumerateArray().Select(v => v.GetString()).ToArray();
+                if (root.TryGetProperty("panels", out var panels))
+                    foreach (var e in panels.EnumerateArray())
+                        g.Panels.Add(new PanelInfo
+                        {
+                            Id = e.GetProperty("id").GetInt32(),
+                            Kind = e.GetProperty("kind").GetInt32(),
+                            Name = e.GetProperty("name").GetString(),
+                            Cost = e.GetProperty("cost").GetInt32(),
+                        });
+                g.LoadExtra(root);
+                // forge levels: +N follows its base item directly
+                foreach (var it in g.Items)
+                    if (it.Plus > 0 && it.Id - it.Plus >= 0) g.Items[it.Id - it.Plus].MaxPlus = Math.Max(g.Items[it.Id - it.Plus].MaxPlus, it.Plus);
+
+                string iconPath = path != null ? Path.Combine(Path.GetDirectoryName(path), "icons.png") : null;
+                g.LoadIcons(iconPath,
+                    root.TryGetProperty("iconSize", out var sz) ? sz.GetInt32() : 64,
+                    root.TryGetProperty("iconsPerRow", out var pr) ? pr.GetInt32() : 32);
+                return g;
+            }
         }
 
         // ---- item icons: one sheet (icons.png next to gamedata.json), cut and cached per tile
@@ -325,6 +381,8 @@ namespace SaveEditor
             for (int i = 0; i < 6 && dir != null; i++, dir = dir.Parent)
             {
                 string p = Path.Combine(dir.FullName, "gamedata.json");
+                if (File.Exists(p)) return p;
+                p = Path.Combine(dir.FullName, "Assets", "gamedata.json");
                 if (File.Exists(p)) return p;
                 p = Path.Combine(dir.FullName, "saveedit", "gamedata.json");
                 if (File.Exists(p)) return p;
