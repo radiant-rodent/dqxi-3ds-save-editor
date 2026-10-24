@@ -70,7 +70,7 @@ namespace SaveEditor
             RegionGrid.ItemsSource = SaveFile.Regions;
             SideData.Text = ed.Game.Loaded
                 ? $"Game data: {ed.Game.Items.Count} items"
-                : "No gamedata.json found: items show as numbers. Make it with: python -m dq11tool.savedata workspace saveedit/gamedata.json";
+                : "No gamedata.json next to the exe: names show as numbers (see README).";
 
             AllowDrop = true;
             Drop += (s, e) =>

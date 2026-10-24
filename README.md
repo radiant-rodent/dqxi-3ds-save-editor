@@ -23,6 +23,12 @@ Every byte of the 51,376-byte slot file has a known region, and most values can 
 Saving rewrites the slot's checksum and keeps a copy of the file it replaces in
 `%LOCALAPPDATA%\DQXISaveEditor\backups`.
 
+## Download
+
+Grab `SaveEditor.exe` from the [releases](https://github.com/radiant-rodent/dqxi-3ds-save-editor/releases):
+one portable file, no install, no .NET needed (Windows 10/11, 64-bit). Put `gamedata.json` and
+`icons.png` (see below) in the same folder to get item names and icons.
+
 ## Building
 
 Needs the .NET 9 SDK (Windows, WPF):
@@ -30,6 +36,12 @@ Needs the .NET 9 SDK (Windows, WPF):
 ```
 dotnet build -c Release
 bin\Release\net9.0-windows\SaveEditor.exe [path to Data1]
+```
+
+Portable single-file exe (what the releases contain):
+
+```
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o publish
 ```
 
 ## Game data (names and icons)

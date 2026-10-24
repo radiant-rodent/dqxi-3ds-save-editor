@@ -11,7 +11,7 @@
     <StartupObject>SaveEditor.Program</StartupObject>
   </PropertyGroup>
 
-  <!-- Game tables made by `python -m dq11tool.savedata workspace saveedit/gamedata.json`
+  <!-- Game tables made by `python -m dq11tool.savedata workspace <this folder>/gamedata.json`
        (built from the extracted game, so not in git). Without it the editor shows ids. -->
   <ItemGroup Condition="Exists('gamedata.json')">
     <None Include="gamedata.json" CopyToOutputDirectory="PreserveNewest" />

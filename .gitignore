@@ -2,3 +2,4 @@ bin/
 obj/
 gamedata.json
 icons.png
+publish/
