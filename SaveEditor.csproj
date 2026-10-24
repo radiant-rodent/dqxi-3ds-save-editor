@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>SaveEditor</AssemblyName>
+    <RootNamespace>SaveEditor</RootNamespace>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <StartupObject>SaveEditor.Program</StartupObject>
+  </PropertyGroup>
+
+  <!-- Game tables made by `python -m dq11tool.savedata workspace saveedit/gamedata.json`
+       (built from the extracted game, so not in git). Without it the editor shows ids. -->
+  <ItemGroup Condition="Exists('gamedata.json')">
+    <None Include="gamedata.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('icons.png')">
+    <None Include="icons.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
